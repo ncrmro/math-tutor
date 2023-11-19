@@ -1,0 +1,20 @@
+[package]
+name = "math_tutor"
+version = "0.1.0"
+authors = ["Your name"]
+edition = "2021"
+license = "MIT"
+
+[dependencies]
+esp32c3-hal = "0.2.0"
+esp-backtrace = { version = "0.2.0", features = [
+    "esp32c3",
+    "panic-handler",
+    "print-uart",
+] }
+riscv-rt = { version = "0.9", optional = true }
+esp-println     = { version = "0.6.0", features = ["esp32c3"] }
+
+[features]
+default = ["rt"]
+rt = ["riscv-rt"]
