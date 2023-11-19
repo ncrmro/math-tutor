@@ -1,9 +1,8 @@
 [package]
-name = "math_tutor"
+name = "math_tutor_esp32"
 version = "0.1.0"
-authors = ["Your name"]
+authors = ["Nicholas Romero"]
 edition = "2021"
-license = "MIT"
 
 [dependencies]
 esp32c3-hal = "0.2.0"

@@ -1,0 +1,9 @@
+[package]
+name = "math_tutor_terminal_cli"
+version = "0.1.0"
+authors = ["Nicholas Romero"]
+edition = "2021"
+
+[dependencies]
+crossterm = "0.27.0"
+ratatui = "0.24.0"
