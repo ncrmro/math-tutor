@@ -2,7 +2,7 @@
 
 ## Why
 
-This device is low powered and can only teach math and is not ambiguise.
+This device is low powered and can only teach math and is not ambiguity.
 
 ## How
 
@@ -13,3 +13,8 @@ to an ESP32.
 
 Device that teaches math the device is appliance like and not multipurpose. 
 
+# Local Development
+
+```shell
+cargo build --workspace  
+```

@@ -1,0 +1,6 @@
+[workspace]
+members = [
+    "iface_esp32",
+    "iface_terminal_cli",
+    "math_tutor_core"
+]

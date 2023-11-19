@@ -4,6 +4,7 @@
 use esp32c3_hal::{clock::ClockControl, pac::Peripherals, prelude::*, timer::TimerGroup, Rtc, IO};
 use esp_backtrace as _;
 use esp_println::println;
+use math_tutor_core::add;
 use riscv_rt::entry;
 
 #[entry]
@@ -46,7 +47,7 @@ fn main() -> ! {
             if button.is_low().unwrap() {
                 // If button pressed decrease the delay value
                 del_var = del_var - 2_5000_u32;
-                println!("Hello world!");
+                println!("Hello world!, {}", add(10, 10));
 
                 // If updated delay value reaches zero then reset it back to starting value
                 if del_var < 2_5000 {

@@ -13,6 +13,7 @@ esp-backtrace = { version = "0.2.0", features = [
 ] }
 riscv-rt = { version = "0.9", optional = true }
 esp-println     = { version = "0.6.0", features = ["esp32c3"] }
+math_tutor_core = { path = "../math_tutor_core"}
 
 [features]
 default = ["rt"]

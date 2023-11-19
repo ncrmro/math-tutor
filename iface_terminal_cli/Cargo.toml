@@ -7,3 +7,4 @@ edition = "2021"
 [dependencies]
 crossterm = "0.27.0"
 ratatui = "0.24.0"
+math_tutor_core = { path = "../math_tutor_core"}

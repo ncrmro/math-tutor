@@ -3,6 +3,7 @@ use crossterm::{
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
     ExecutableCommand,
 };
+use math_tutor_core::add;
 use ratatui::{prelude::*, widgets::*};
 use std::io::{self, stdout};
 
@@ -34,8 +35,9 @@ fn handle_events() -> io::Result<bool> {
 }
 
 fn ui(frame: &mut Frame) {
+    let a = add(10, 10);
     frame.render_widget(
-        Paragraph::new("Hello World!")
+        Paragraph::new(format!("Hello World! {a}"))
             .block(Block::default().title("Greeting").borders(Borders::ALL)),
         frame.size(),
     );
