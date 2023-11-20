@@ -2,9 +2,8 @@
 #![no_main]
 
 use esp32c3_hal::{clock::ClockControl, pac::Peripherals, prelude::*, timer::TimerGroup, Rtc, IO};
-use esp_backtrace as _;
 use esp_println::println;
-use math_tutor_core::add;
+use math_tutor_core::{add, create_math_lessons};
 use riscv_rt::entry;
 
 #[entry]
@@ -40,6 +39,11 @@ fn main() -> ! {
     // Initialize LED to on or off
     led.set_low().unwrap();
 
+    let lessons = create_math_lessons();
+    for x in lessons {
+        println!("{}", x.title)
+    }
+    // lessons.first
     // Application Loop
     loop {
         for _i in 1..del_var {

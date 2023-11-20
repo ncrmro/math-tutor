@@ -9,3 +9,7 @@
 ```shell
 cargo-espflash espflash flash --monitor
 ```
+
+# Notes
+
+https://wokwi.com/projects/362145427195567105
