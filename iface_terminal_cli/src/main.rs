@@ -65,6 +65,7 @@ impl<T> StatefulList<T> {
 /// Check the drawing logic for items on how to specify the highlighting style for selected items.
 struct App<'a> {
     items: StatefulList<Lesson<'a>>,
+    show_lesson_details: Option<i8>, // New field to track if lesson details should be shown
 }
 
 impl<'a> App<'a> {
@@ -72,6 +73,7 @@ impl<'a> App<'a> {
         App {
             // into_iter.. is needed to convert from heapless vec we use for embedded devices.
             items: StatefulList::with_items(create_math_lessons().into_iter().collect()),
+            show_lesson_details: Option::None,
         }
     }
 
@@ -130,7 +132,12 @@ fn run_app<B: Backend>(
                         KeyCode::Left => app.items.unselect(),
                         KeyCode::Down => app.items.next(),
                         KeyCode::Up => app.items.previous(),
-                        KeyCode::Enter => println!("Enter"),
+                        KeyCode::Enter => {
+                            // app.show_lesson_details = match app.show_lesson_details {
+                            //     None => {}
+                            //     Some(_) => {}
+                            // }; // Toggle lesson details view
+                        }
                         _ => {}
                     }
                 }
@@ -147,7 +154,7 @@ fn ui(f: &mut Frame, app: &mut App) {
     // Create two chunks with equal horizontal screen space
     let chunks = Layout::default()
         .direction(Direction::Horizontal)
-        .constraints([Constraint::Percentage(50)])
+        .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
         .split(f.size());
 
     // Iterate through all elements in the `items` app and append some debug text to it.
@@ -180,4 +187,25 @@ fn ui(f: &mut Frame, app: &mut App) {
 
     // We can now render the item list
     f.render_stateful_widget(items, chunks[0], &mut app.items.state);
+
+    if app.show_lesson_details.is_some() {
+        if let Some(selected) = app.items.state.selected() {
+            let lesson = &app.items.items[selected];
+            let lesson_text = lesson
+                .lessons
+                .iter()
+                .fold(String::new(), |mut acc, lesson| {
+                    acc.push_str(lesson.as_str());
+                    acc.push('\n');
+                    acc
+                });
+
+            let paragraph = Paragraph::new(lesson_text.as_str()).block(
+                Block::default()
+                    .borders(Borders::ALL)
+                    .title("Lesson Details"),
+            );
+            f.render_widget(paragraph, chunks[1]);
+        }
+    }
 }

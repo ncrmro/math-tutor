@@ -2,5 +2,6 @@
 members = [
     "iface_esp32",
     "iface_terminal_cli",
+    "iface_unikernal",
     "math_tutor_core"
 ]
