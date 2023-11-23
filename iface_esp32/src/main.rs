@@ -1,60 +1,117 @@
+//! I2C Display example
+//!
+//! This example prints some text on an SSD1306-based
+//! display (via I2C)
+//!
+//! The following wiring is assumed:
+//! - SDA => GPIO1
+//! - SCL => GPIO2
+
 #![no_std]
 #![no_main]
 
-use esp32c3_hal::{clock::ClockControl, pac::Peripherals, prelude::*, timer::TimerGroup, Rtc, IO};
+use embedded_graphics::{
+    mono_font::{
+        ascii::{FONT_6X10, FONT_9X18_BOLD},
+        MonoTextStyleBuilder,
+    },
+    pixelcolor::BinaryColor,
+    prelude::*,
+    text::{Alignment, Text},
+};
+use esp32c3_hal::{
+    clock::ClockControl, gpio::IO, i2c::I2C, peripherals::Peripherals, prelude::*,
+    timer::TimerGroup,
+};
 use esp_backtrace as _;
-use esp_println::println;
-use riscv_rt::entry;
+use nb::block;
+use ssd1306::{prelude::*, I2CDisplayInterface, Ssd1306};
 
 #[entry]
 fn main() -> ! {
-    // Take Peripherals, Initialize Clocks, and Create a Handle for Each
-    let peripherals = Peripherals::take().unwrap();
+    let peripherals = Peripherals::take();
     let system = peripherals.SYSTEM.split();
     let clocks = ClockControl::boot_defaults(system.clock_control).freeze();
 
-    // Instantiate and Create Handles for the RTC and TIMG watchdog timers
-    let mut rtc = Rtc::new(peripherals.RTC_CNTL);
     let timer_group0 = TimerGroup::new(peripherals.TIMG0, &clocks);
-    let mut wdt0 = timer_group0.wdt;
-    let timer_group1 = TimerGroup::new(peripherals.TIMG1, &clocks);
-    let mut wdt1 = timer_group1.wdt;
+    let mut timer0 = timer_group0.timer0;
 
-    // Disable the RTC and TIMG watchdog timers
-    rtc.swd.disable();
-    rtc.rwdt.disable();
-    wdt0.disable();
-    wdt1.disable();
-
-    // Instantiate and Create Handle for IO
     let io = IO::new(peripherals.GPIO, peripherals.IO_MUX);
 
-    // Instantiate and Create Handle for LED output & Button Input
-    let mut led = io.pins.gpio4.into_push_pull_output();
-    let button = io.pins.gpio0.into_pull_up_input();
+    // Create a new peripheral object with the described wiring
+    // and standard I2C clock speed
+    let i2c = I2C::new(
+        peripherals.I2C0,
+        io.pins.gpio6,
+        io.pins.gpio7,
+        100u32.kHz(),
+        &clocks,
+    );
 
-    // Create and initialize a delay variable to manage delay loop
-    let mut del_var = 10_0000_u32;
+    // Start timer (5 second interval)
+    timer0.start(5u64.secs());
 
-    // Initialize LED to on or off
-    led.set_low().unwrap();
+    // Initialize display
+    let interface = I2CDisplayInterface::new(i2c);
+    let mut display = Ssd1306::new(interface, DisplaySize128x64, DisplayRotation::Rotate0)
+        .into_buffered_graphics_mode();
+    display.init().unwrap();
 
-    // Application Loop
+    // Specify different text styles
+    let text_style = MonoTextStyleBuilder::new()
+        .font(&FONT_6X10)
+        .text_color(BinaryColor::On)
+        .build();
+    let text_style_big = MonoTextStyleBuilder::new()
+        .font(&FONT_9X18_BOLD)
+        .text_color(BinaryColor::On)
+        .build();
+
     loop {
-        for _i in 1..del_var {
-            // Check if button got pressed
-            if button.is_low().unwrap() {
-                // If button pressed decrease the delay value
-                del_var = del_var - 2_5000_u32;
-                println!("Hello world!");
+        // Fill display bufffer with a centered text with two lines (and two text
+        // styles)
+        Text::with_alignment(
+            "esp-hal",
+            display.bounding_box().center() + Point::new(0, 0),
+            text_style_big,
+            Alignment::Center,
+        )
+        .draw(&mut display)
+        .unwrap();
 
-                // If updated delay value reaches zero then reset it back to starting value
-                if del_var < 2_5000 {
-                    del_var = 10_0000_u32;
-                }
-            }
-        }
-        // Toggle LED
-        led.toggle().unwrap();
+        Text::with_alignment(
+            "Chip: ESP32-C3",
+            display.bounding_box().center() + Point::new(0, 14),
+            text_style,
+            Alignment::Center,
+        )
+        .draw(&mut display)
+        .unwrap();
+
+        // Write buffer to display
+        display.flush().unwrap();
+        // Clear display buffer
+        display.clear(BinaryColor::Off).unwrap();
+
+        // Wait 5 seconds
+        block!(timer0.wait()).unwrap();
+
+        // Write single-line centered text "Hello World" to buffer
+        Text::with_alignment(
+            "Hello World!",
+            display.bounding_box().center(),
+            text_style_big,
+            Alignment::Center,
+        )
+        .draw(&mut display)
+        .unwrap();
+
+        // Write buffer to display
+        display.flush().unwrap();
+        // Clear display buffer
+        display.clear(BinaryColor::Off).unwrap();
+
+        // Wait 5 seconds
+        block!(timer0.wait()).unwrap();
     }
 }
